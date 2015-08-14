@@ -21,19 +21,21 @@ public class CashPager extends Activity {
 
 	private RelativeLayout relativeLayout;
 	private Button button;
-	
+
 	@SuppressLint("ResourceAsColor")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		relativeLayout = new RelativeLayout(this);
-		
+
 		button = new Button(getApplicationContext());
 		button.setText("窗体展示");
-		button.setOnClickListener(new View.OnClickListener() {		
+		button.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				new CashDialog(getApplicationContext()).showPopWindow(getApplicationContext());
+				new CashDialog(getApplicationContext()).showPopWindow(
+						getApplicationContext(), "删除",
+						"删除的信息将不能恢复,你确定要删除吗?删除的信息将不能恢复,你确定要删除吗?", "删除", "取消");
 			}
 		});
 		RelativeLayout.LayoutParams LP1 = new RelativeLayout.LayoutParams(
@@ -44,20 +46,6 @@ public class CashPager extends Activity {
 		relativeLayout.setBackgroundColor(Color.GRAY);
 		relativeLayout.addView(button, LP1);
 		setContentView(relativeLayout);
-		
-		
-		/*Dialog dialog = new CashDialog(this);
-		Window dialogWindow = dialog.getWindow();
-		dialogWindow.setBackgroundDrawableResource(R.color.white);
-		
-		dialog.show();
-		//对话框的百分比设置要在show方法后面   否则无效
-		WindowManager manager = getWindowManager();
-		Display display = manager.getDefaultDisplay();// 获得屏幕的宽、高
-		WindowManager.LayoutParams LP =dialogWindow.getAttributes();// 获得当前对话框的参数
-		LP.width = (int) (display.getWidth() * 0.85);//宽设置为屏幕的0.85
-		LP.height = (int) (display.getHeight() * 0.35);//高设置为屏幕的0.35
-		dialogWindow.setAttributes(LP);*/
-		
+
 	}
 }

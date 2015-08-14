@@ -4,12 +4,14 @@ import android.R;
 import android.R.integer;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
 import android.provider.ContactsContract.CommonDataKinds.Relation;
+import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.View;
@@ -31,55 +33,81 @@ public class CashDialog extends FrameLayout {
 	private static final int ID_Delete = 4;
 	private static final int ID_titleLineLayout = 5;
 	private static final int ID_buttonLineLayout = 6;
-	private static final int ID_buttonUPLayout = 7;
-	private static final int ID_buttonCenterLineLayout = 8;
-	private static final int ID_titleLayout = 9;
-	private static final int ID_contentView = 10;
-	private static final int ID_deleteView = 11;
-	private static final int ID_cancelView = 12;
-	private static final int ID_buttonView = 13;
+	private static final int ID_buttonCenterLineLayout = 7;
+	private static final int ID_titleLayout = 8;
+	private static final int ID_contentView = 9;
+	private static final int ID_buttonView = 10;
+
 	private Context mContext;
 	private RelativeLayout relativeLayout;
 	private TextView Title;
 	private TextView content;
 	private Button CancelButton;
 	private Button DeleteButton;
+
 	private WindowManager mWindowManager = null;
 	private RelativeLayout mView = null;
 	private Boolean isShown = false;
 	private int buttonTextSize = 16;
 	private int conentTextSize = 18;
 	private int titleTextSize = 20;
-	private Display display;// 获得屏幕的分辨率
-	private RelativeLayout buttonView;
-	private int titleWidth = 0;
-	private int buttonHeight = 0;
+	private int[] size;
+
+	private String String_title = "";
+	private String String_content = "";
+	private String String_sure = "";
+	private String String_cancle = "";
 
 	public CashDialog(Context context) {
 		super(context);
 		mContext = context;
 	}
 
-	public void showPopWindow(Context context) {
+	/**
+	 * 
+	 * @param context
+	 *            当前上下文
+	 * @param title
+	 *            标题
+	 * @param content
+	 *            内容
+	 * @param sure
+	 *            确认文字
+	 * @param cancle
+	 *            取消文字
+	 */
+	public void showPopWindow(Context context, String title, String content,
+			String sure, String cancle) {
 		isShown = true;
-		WindowManager.LayoutParams params = initLayout(context);
-		mView = setView(context);
+		this.String_title = title;
+		this.String_content = content;
+		this.String_sure = sure;
+		this.String_cancle = cancle;
+		WindowManager.LayoutParams params = initLayout(context);// 初始化参数设置
+		mView = setView(context);// 获得整个页面布局的框架
+		setClickListener();
 		mWindowManager.addView(mView, params);
 
 	}
 
+	/**
+	 * SystemAlertWindow 参数的初始化
+	 * 
+	 * @param context
+	 * @return
+	 */
 	private WindowManager.LayoutParams initLayout(Context context) {
 		// 获取应用的Context
 		mContext = context.getApplicationContext();
 		// 获取WindowManager
 		mWindowManager = (WindowManager) mContext
 				.getSystemService(Context.WINDOW_SERVICE);
-		display = mWindowManager.getDefaultDisplay();// 获得屏幕的分辨率
-		titleWidth = (int) (display.getWidth() * 0.85);
-		buttonHeight = (int) (display.getHeight() * 0.09);
-
+		// display = mWindowManager.getDefaultDisplay();// 获得屏幕的分辨率
+		// 获得页面尺寸的大小
+		size = getPageSize();
+		// buttonHeight = (int) (display.getHeight() * 0.09);
 		WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-				(int) (display.getWidth() * 0.85), LayoutParams.WRAP_CONTENT,
+				size[0], LayoutParams.WRAP_CONTENT,
 				WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
 				WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
 				PixelFormat.TRANSLUCENT);
@@ -100,6 +128,7 @@ public class CashDialog extends FrameLayout {
 		RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
 				LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 		relativeLayout.setLayoutParams(lp);
+
 		// 标题的框架
 		relativeLayout.addView(titleLayout());
 
@@ -109,6 +138,7 @@ public class CashDialog extends FrameLayout {
 		// 内容的框架
 		relativeLayout.addView(contentLayout());
 
+		// 按钮的框架
 		relativeLayout.addView(buttonLayout());
 
 		// 按钮上方的横线
@@ -120,24 +150,60 @@ public class CashDialog extends FrameLayout {
 		return relativeLayout;
 	}
 
-	@SuppressLint("NewApi") private RelativeLayout buttonLayout() {
+	/**
+	 * 对话框最下方的按钮布局
+	 * 
+	 * @return 返回相对布局
+	 */
+	@SuppressLint("NewApi")
+	private RelativeLayout buttonLayout() {
 		RelativeLayout buttonView = new RelativeLayout(mContext);
 		RelativeLayout.LayoutParams buttonParams = new RelativeLayout.LayoutParams(
-				RelativeLayout.LayoutParams.WRAP_CONTENT, buttonHeight);
+				RelativeLayout.LayoutParams.WRAP_CONTENT,
+				(int) (size[0] * 0.17));
 		buttonView.setId(ID_buttonView);
 		buttonParams.addRule(RelativeLayout.BELOW, ID_contentView);
 		buttonView.setLayoutParams(buttonParams);
-
+		// 下方是删除按钮的设置
 		DeleteButton = new Button(mContext);
-		DeleteButton.setText("删除");// 设置按钮的文本
+		DeleteButton.setText(String_sure);// 设置按钮的文本
 		DeleteButton.setId(ID_Delete);// 设置按钮的ID
 		DeleteButton.setTextColor(0xff000000);// 设置字体的颜色
 		DeleteButton.setTextSize(buttonTextSize);// 设置按钮字体的大小
 		// 设置删除按钮的选择器--注意选择器范围的大小 大范围在后面
-		DeleteButton.setBackground(newSelector(mContext,
+		DeleteButton.setBackgroundDrawable(newSelector(mContext,
 				Color.rgb(232, 232, 232), Color.rgb(213, 213, 213),
 				Color.rgb(213, 213, 213)));
 		// QueryButton.setEnabled(false);
+
+		RelativeLayout.LayoutParams LP4 = new RelativeLayout.LayoutParams(
+				size[0] / 2, (int) (size[0] * 0.17));
+		LP4.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
+		DeleteButton.setLayoutParams(LP4);
+		buttonView.addView(DeleteButton);
+
+		// 设置取消按钮的相关属性
+		CancelButton = new Button(mContext);
+		CancelButton.setText(String_cancle);// 取消按钮的文本
+		CancelButton.setId(ID_Cancel);// 取消按钮的ID
+		CancelButton.setTextColor(0xff000000);// 设置字体的颜色
+		CancelButton.setTextSize(buttonTextSize);// 取消按钮字体的大小
+		// 设置取消按钮的选择器--注意选择器范围的大小 大范围在后面
+
+		CancelButton.setBackgroundDrawable(newSelector(mContext,
+				Color.rgb(232, 232, 232), Color.rgb(213, 213, 213),
+				Color.rgb(213, 213, 213)));
+
+		// DeleteButton.setEnabled(false);
+		RelativeLayout.LayoutParams LP5 = new RelativeLayout.LayoutParams(
+				size[0] / 2, (int) (size[0] * 0.17));
+		LP5.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
+		CancelButton.setLayoutParams(LP5);
+		buttonView.addView(CancelButton);
+		return buttonView;
+	}
+
+	private void setClickListener() {
 		// 设置删除按钮的监听事件
 		DeleteButton.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -146,23 +212,6 @@ public class CashDialog extends FrameLayout {
 				hidePopupWindow();
 			}
 		});
-		RelativeLayout.LayoutParams LP4 = new RelativeLayout.LayoutParams(
-				titleWidth / 2, buttonHeight);
-		LP4.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
-		DeleteButton.setLayoutParams(LP4);
-		buttonView.addView(DeleteButton);
-
-		// 设置取消按钮的相关属性
-		CancelButton = new Button(mContext);
-		CancelButton.setText("取消");// 取消按钮的文本
-		CancelButton.setId(ID_Cancel);// 取消按钮的ID
-		CancelButton.setTextColor(0xff000000);// 设置字体的颜色
-		CancelButton.setTextSize(buttonTextSize);// 取消按钮字体的大小
-		// 设置取消按钮的选择器--注意选择器范围的大小 大范围在后面
-		CancelButton.setBackground(newSelector(mContext,
-				Color.rgb(232, 232, 232), Color.rgb(213, 213, 213),
-				Color.rgb(213, 213, 213)));
-		// DeleteButton.setEnabled(false);
 		// 设置取消按钮的监听事件
 		CancelButton.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -171,12 +220,6 @@ public class CashDialog extends FrameLayout {
 				hidePopupWindow();
 			}
 		});
-		RelativeLayout.LayoutParams LP5 = new RelativeLayout.LayoutParams(
-				titleWidth / 2, buttonHeight);
-		LP5.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
-		CancelButton.setLayoutParams(LP5);
-		buttonView.addView(CancelButton);
-		return buttonView;
 	}
 
 	/**
@@ -214,7 +257,7 @@ public class CashDialog extends FrameLayout {
 		RelativeLayout lineLayout = new RelativeLayout(mContext);
 		lineLayout.setId(ID_buttonCenterLineLayout);
 		RelativeLayout.LayoutParams buttonlineParams = new RelativeLayout.LayoutParams(
-				1, buttonHeight);
+				1, (int) (size[0] * 0.17));
 		lineLayout.setBackgroundColor(Color.rgb(213, 213, 213));
 		buttonlineParams.addRule(RelativeLayout.CENTER_HORIZONTAL,
 				ID_buttonView);
@@ -231,9 +274,6 @@ public class CashDialog extends FrameLayout {
 		RelativeLayout.LayoutParams contentParams = new RelativeLayout.LayoutParams(
 				RelativeLayout.LayoutParams.MATCH_PARENT,
 				RelativeLayout.LayoutParams.WRAP_CONTENT);
-		contentParams.setMargins((int) (titleWidth * 0.06),
-				(int) (buttonHeight * 0.25), (int) (titleWidth * 0.06),
-				(int) (buttonHeight * 0.5));
 		contentView.setId(ID_contentView);
 		contentParams.addRule(RelativeLayout.BELOW, ID_titleLineLayout);
 		contentParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
@@ -241,16 +281,16 @@ public class CashDialog extends FrameLayout {
 		contentView.setBackgroundColor(Color.rgb(232, 232, 232));// 内容的背景色
 
 		content = new TextView(mContext);
-		content.setText("删除的信息将不能恢复，你确定要删除吗?删除的信息将不能恢复，你确定要删除吗?");// 设置content中的内容文本
+		content.setText(String_content);// 设置content中的内容文本
 		content.setId(ID_content);// 设置content的ID
 		content.setTextColor(Color.rgb(36, 36, 36));// 设置字体的颜色
 		content.setTextSize(conentTextSize);// 设置字体的大小
+
+		content.setPadding((int) (size[0] * 0.06), (int) (size[0] * 0.04),
+				(int) (size[0] * 0.06), (int) (size[0] * 0.08));
 		RelativeLayout.LayoutParams LP2 = new RelativeLayout.LayoutParams(
 				RelativeLayout.LayoutParams.MATCH_PARENT,
 				RelativeLayout.LayoutParams.WRAP_CONTENT);
-		// 内容在标题的下方，并且和标题的右边对齐
-		// LP2.addRule(RelativeLayout.BELOW, ID_titleLineLayout);
-		// LP2.addRule(RelativeLayout.ALIGN_RIGHT, ID_title);
 		content.setLayoutParams(LP2);
 		contentView.addView(content);
 		return contentView;
@@ -261,16 +301,19 @@ public class CashDialog extends FrameLayout {
 	 */
 	private RelativeLayout titleLayout() {
 		int titleHeight = 0;
-		titleHeight = (int) (display.getHeight() * 0.08);
+		titleHeight = (int) (size[0] * 0.17);// size[0]是屏幕分辨率的宽
+		if (!isScreenVertical(mContext)) {// 屏幕垂直
+			titleHeight = (int) (size[0] * 0.13);
+		}
 		RelativeLayout titleLayout = new RelativeLayout(mContext);
 		RelativeLayout.LayoutParams titleParams = new RelativeLayout.LayoutParams(
-				titleWidth, titleHeight);
-		titleParams.leftMargin = (int) (titleWidth * 0.1);
+				size[0], titleHeight);
+		titleParams.leftMargin = (int) (size[0] * 0.06);
 		titleLayout.setId(ID_titleLayout);
 		titleLayout.setLayoutParams(titleParams);
 
 		Title = new TextView(mContext);
-		Title.setText("删除");// 设置标题的文本
+		Title.setText(String_title);// 设置标题的文本
 		Title.setId(ID_title);// 设置标题的ID
 		Title.setTextColor(Color.rgb(68, 152, 214));// 设置字体的颜色
 		Title.setTextSize(titleTextSize);// 设置标题字体的大小
@@ -303,7 +346,7 @@ public class CashDialog extends FrameLayout {
 			int idPressed, int idFocused) {
 		StateListDrawable drawable = new StateListDrawable();
 		Drawable pressed = new ColorDrawable(idPressed);
-		Drawable focused = new ColorDrawable(idPressed);
+		Drawable focused = new ColorDrawable(idFocused);
 		Drawable normal = new ColorDrawable(idNormal);
 		drawable.addState(new int[] { android.R.attr.state_pressed,
 				android.R.attr.state_enabled }, pressed);
@@ -322,5 +365,54 @@ public class CashDialog extends FrameLayout {
 			mWindowManager.removeView(mView);
 			isShown = false;
 		}
+	}
+
+	/**
+	 * 获得屏幕的分辨率
+	 * 
+	 * @param context
+	 * @return
+	 */
+	public int[] getScreenDisplay(Context context) {
+		DisplayMetrics displayMetrics = context.getResources()
+				.getDisplayMetrics();
+		int display[] = { displayMetrics.widthPixels,
+				displayMetrics.heightPixels };
+		return display;
+	}
+
+	/**
+	 * 判断屏幕是否为竖屏状态
+	 * 
+	 * @param context
+	 * @return
+	 */
+	public boolean isScreenVertical(Context context) {
+		Configuration config = context.getResources().getConfiguration();
+		if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+			return false;
+		} else if (config.orientation == Configuration.ORIENTATION_PORTRAIT) {
+			return true;
+		} else if (config.hardKeyboardHidden == Configuration.KEYBOARDHIDDEN_NO) {
+			return false;
+		} else if (config.hardKeyboardHidden == Configuration.KEYBOARDHIDDEN_YES) {
+			return true;
+		}
+		return true;
+	}
+
+	/**
+	 * 获得页面尺寸的方法
+	 * 
+	 * @return
+	 */
+	private int[] getPageSize() {
+		int[] size = getScreenDisplay(mContext);
+		if (isScreenVertical(mContext)) {
+			size[0] = (int) (size[0] * 0.9);
+		} else {
+			size[0] = (int) (size[0] * 0.73);
+		}
+		return size;
 	}
 }
